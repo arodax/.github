@@ -1,0 +1,8 @@
+{
+  "name": "ARODAX Workflow",
+  "description": "ARODAX starter workflow.",
+  "filePatterns": [
+    "package.json$",
+    "composer.json$"
+  ]
+}
