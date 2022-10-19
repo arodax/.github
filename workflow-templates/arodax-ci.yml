@@ -1,0 +1,65 @@
+name: ARODAX CI
+run-name: ${{ github.actor }} triggered default GitHub Action
+on: [push]
+jobs:
+
+  # —— Composer —————————————————————————————————————————————————————————
+  composer-packages:
+    name: Downloading Composer packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: /tmp/composer-cache
+          key: ${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
+      - uses: php-actions/composer@v6
+        with:
+          php_version: "8.1"
+          args: --profile --ignore-platform-reqs
+          memory_limit: "-1"
+
+  # —— Node —————————————————————————————————————————————————————————
+  node-packages:
+    name: Downloading Node packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Cache node modules
+        id: cache-yarn
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.cache/yarn` on Linux
+          path: ~/.cache/yarn
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      # on cache miss, list all packages
+      - if: ${{ steps.cache-yarn.outputs.cache-hit != 'true' }}
+        name: List the state of node modules
+        continue-on-error: true
+        run: yarn list
+
+      # install node dependencies with yarn
+      - name: Installing dependencies
+        run: yarn install
+
+  # —— Symfony ——————————————————————————————————————————————————————————
+  phpunit-testing:
+    name: Testing with the PHP Unit
+    runs-on: ubuntu-latest
+    needs: [composer-packages, composer-packages]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: php-actions/composer@v6
+        with:
+          php_version: "8.1"
+          args: --profile --ignore-platform-reqs
+          memory_limit: "-1"
+      - name: Testing
+        run: bin/phpunit
