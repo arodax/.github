@@ -1,3 +1,10 @@
+# —— README —————————————————————————————————————————————————————————
+# Get the latest default workflow template from this file:
+#
+# https://raw.githubusercontent.com/arodax/.github/main/workflow-templates/arodax-ci.yml
+#
+# and modify the content of the file according to the project needs.
+
 name: ARODAX CI
 run-name: ${{ github.actor }} triggered default GitHub Action
 on: [push]
